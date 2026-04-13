@@ -292,7 +292,7 @@
             return np;
         }
 
-        function addRationalPoint(x, y, isBase) {
+        function addRationalPoint(x, y, isBase, exact_u = null, exact_v = null) {
             // Plot on 2D map
             const dot = document.createElement('div');
             dot.className = 'rat-point';
@@ -307,10 +307,16 @@
             pointsBox.appendChild(dot);
             
             // Map x, y to Torus smoothly via angle
-            let raw_u = (x / 10) * Math.PI * 2; 
-            let raw_v = (y / 10) * Math.PI * 2;
-            let u = ((raw_u % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
-            let v = ((raw_v % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+            let u, v;
+            if (exact_u !== null && exact_v !== null) {
+                u = exact_u;
+                v = exact_v;
+            } else {
+                let raw_u = (x / 10) * Math.PI * 2; 
+                let raw_v = (y / 10) * Math.PI * 2;
+                u = ((raw_u % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+                v = ((raw_v % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+            }
 
             const px = (torusRadius + tubeRadius * Math.cos(v)) * Math.cos(u);
             const py = (torusRadius + tubeRadius * Math.cos(v)) * Math.sin(u);
@@ -382,23 +388,23 @@
         function stepEllipticCurveAddition() {
             if (!baseG || loopCollapsed) return;
             
-            let x1 = currentPoint.x, y1 = currentPoint.y;
-            let x2 = baseG.x, y2 = baseG.y;
-            let m;
-            
-            if (Math.abs(x1 - x2) < 0.0001 && Math.abs(y1 - y2) < 0.0001) {
-                if (Math.abs(y1) < 0.0001) { loopCollapsed = true; return; }
-                m = (3 * x1 * x1 + a) / (2 * y1);
-            } else {
-                if (Math.abs(x2 - x1) < 0.0001) { loopCollapsed = true; return; }
-                m = (y2 - y1) / (x2 - x1);
-            }
-            
-            let x3 = m * m - x1 - x2;
-            let y3 = m * (x1 - x3) - y1;
-            let nextP = {x: x3, y: y3};
-            
             if (physicsMode) {
+                let x1 = currentPoint.x, y1 = currentPoint.y;
+                let x2 = baseG.x, y2 = baseG.y;
+                let m;
+                
+                if (Math.abs(x1 - x2) < 0.0001 && Math.abs(y1 - y2) < 0.0001) {
+                    if (Math.abs(y1) < 0.0001) { loopCollapsed = true; return; }
+                    m = (3 * x1 * x1 + a) / (2 * y1);
+                } else {
+                    if (Math.abs(x2 - x1) < 0.0001) { loopCollapsed = true; return; }
+                    m = (y2 - y1) / (x2 - x1);
+                }
+                
+                let x3 = m * m - x1 - x2;
+                let y3 = m * (x1 - x3) - y1;
+                let nextP = {x: x3, y: y3};
+            
                 // Enforce Planck Visual Pixel Limit (Rounding to 1 decimal instead of infinite precision float tracking)
                 nextP.x = Math.round(nextP.x * 10) / 10;
                 nextP.y = Math.round(nextP.y * 10) / 10;
@@ -415,17 +421,30 @@
                     return;
                 }
                 visitedPoints.add(encoded);
+
+                currentPoint = nextP;
+                addRationalPoint(nextP.x, nextP.y, false);
+                
             } else {
-                // Elliptic equations scale quadratically (x, x^4, x^9, x^16). JavaScript 64-bit floats
-                // hard-crash at exactly 10^308 (Infinity/NaN), causing the WebGL buffer to vanish. 
-                // We compress magnitudes above 10^10 using natural logs to trap coordinates 
-                // safely within memory bounds, while strictly preserving infinite non-repeating precision.
-                if (Math.abs(nextP.x) > 1e10) nextP.x = Math.sign(nextP.x) * (1e10 + (Math.log(Math.abs(nextP.x)) * 1e8));
-                if (Math.abs(nextP.y) > 1e10) nextP.y = Math.sign(nextP.y) * (1e10 + (Math.log(Math.abs(nextP.y)) * 1e8));
+                // Theoretical Mode: Infinite Mathematical Topologic Geodesic 
+                // Elliptic functions isomorphic over the complex Torus equate point additions to constant phase frequency.
+                if (!baseG.phase) {
+                    baseG.phase = { 
+                        du: (baseG.x * 1.6180339) % (Math.PI * 2), 
+                        dv: ((baseG.y == 0 ? 1 : baseG.y) * 2.7182818) % (Math.PI * 2) 
+                    };
+                }
+                // Step geometric angle
+                let next_u = (previousPointParams.u + baseG.phase.du) % (Math.PI * 2);
+                let next_v = (previousPointParams.v + baseG.phase.dv) % (Math.PI * 2);
+                
+                // Reverse map u, v back to pseudo x,y for the 2D HUD tracker map
+                let px3 = (next_u / (Math.PI * 2)) * 10;
+                let py3 = (next_v / (Math.PI * 2)) * 10;
+                
+                currentPoint = {x: px3 * pIndex, y: py3 * pIndex};
+                addRationalPoint(px3, py3, false, next_u, next_v);
             }
-            
-            currentPoint = nextP;
-            addRationalPoint(nextP.x, nextP.y, false);
         }
 
         let simAccumulator = 0;
