@@ -18,4 +18,4 @@ I built this BSD Torus Engine to computationally prove a massive synthesis betwe
 
 You can literally stress-test the quantum topological bounds in your browser right here. 
 
-**[Link to GitHub Pages Simulation]**
+**https://koopa210.github.io/BSD-Torus-Engine/**
