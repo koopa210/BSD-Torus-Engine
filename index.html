@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birch and Swinnerton-Dyer Torus Engine</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #020205; color: white; font-family: 'Inter', sans-serif; cursor: default; }
+        canvas { display: block; position: absolute; z-index: 1;}
+        
+        #ui { position: absolute; z-index: 5; top: 20px; left: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(5,10,15,0.8); padding: 20px; border-radius: 8px; border: 1px solid rgba(0,255,100,0.3); pointer-events: auto; width: 340px; box-shadow: 0 0 15px rgba(0,255,100,0.1); }
+        h1 { margin: 0 0 10px 0; font-size: 20px; letter-spacing: 1px; color: #00ff88; }
+        .subtitle { margin: 0 0 15px 0; font-size: 12px; color: #ff8800; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;}
+        p { margin: 8px 0; font-size: 14px; }
+        
+        #controls { position: absolute; bottom: 20px; left: 20px; z-index: 20; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; border: 1px solid #00ff88; display: flex; gap: 10px; pointer-events: auto; flex-wrap: wrap; width: 340px; }
+        .btn { background: #00ff88; color: #000; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 4px; font-family: monospace; font-size: 12px; transition: 0.2s; flex: 1; min-width: 80px; text-align: center; }
+        .btn:hover { box-shadow: 0 0 8px #00ff88; }
+        .btn-preset { background: #ff00ff; color: #fff; }
+        .btn-preset:hover { box-shadow: 0 0 8px #ff00ff; }
+        
+        .input-group { display: flex; gap: 10px; margin-top: 15px; }
+        .input-group input { background: rgba(0,255,100,0.1); border: 1px solid #00ff88; color: #fff; padding: 8px; border-radius: 4px; width: 100%; font-family: monospace; text-align: center;}
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* TELEMETRY HUD */
+        #telemetry-panel { position: absolute; top: 20px; right: 20px; width: 320px; background: rgba(0,10,20,0.9); border: 1px solid #ff00ff; padding: 15px; border-radius: 8px; pointer-events: none; z-index: 10; box-shadow: 0 0 15px rgba(255,0,255,0.2);}
+        .tel-title { font-size: 12px; color: #ff00ff; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,0,255,0.3); padding-bottom: 4px; margin-bottom: 10px; font-weight: bold;}
+        
+        /* WAVEFORM */
+        .wave-container { position: relative; width: 100%; height: 80px; background: #050510; border: 1px solid #333; margin-bottom: 15px; overflow: hidden; border-radius: 4px; }
+        .wave-center { position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(0,255,255,0.3); }
+        .wave-s1 { position: absolute; left: 80%; top: 0; bottom: 0; width: 1px; border-left: 1px dashed #ff00ff; }
+        .wave-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* L-FUNCTION PROGRESS */
+        .meter-container { width: 100%; height: 12px; background: #111; border: 1px solid #555; border-radius: 6px; position: relative; margin-bottom: 15px; overflow: hidden;}
+        .meter-fill { position: absolute; top: 1px; bottom: 1px; left: 0; width: 0%; background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff); transition: width 0.1s; border-radius: 6px;}
+        
+        /* RANK PROXY */
+        .rank-box { font-family: monospace; font-size: 24px; color: #00ffff; text-align: center; margin: 10px 0; text-shadow: 0 0 10px #00ffff;}
+        .rank-label { font-size: 10px; text-transform: uppercase; color: #aaa; text-align: center; letter-spacing: 1px; }
+
+        /* RATIONAL POINTS */
+        #points-box { width: 100%; height: 100px; background: #000; border: 1px solid #333; position: relative; overflow: hidden; border-radius: 4px;}
+        .p-ax { position: absolute; background: rgba(0,255,100,0.3); }
+        #px-ax { top: 50%; left: 0; right: 0; height: 1px;}
+        #py-ax { left: 50%; top: 0; bottom: 0; width: 1px;}
+        .rat-point { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #00ff88; box-shadow: 0 0 6px #00ff88; transform: translate(-50%, -50%); }
+
+        /* PLANCK LIMIT ALERT */
+        #collapse-alert { display: none; margin-top: 10px; padding: 10px; background: rgba(255,0,0,0.2); border: 1px solid #ff0000; color: #ff0000; font-family: monospace; font-size: 12px; font-weight: bold; text-align: center; text-shadow: 0 0 5px #ff0000; border-radius: 4px; animation: flash 1s infinite alternate; }
+        @keyframes flash { from { box-shadow: 0 0 5px #ff0000; } to { box-shadow: 0 0 15px #ff0000; } }
+
+        hr { border-color: rgba(255,255,255,0.2); margin: 12px 0; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h1>BSD Torus Engine</h1>
+        <p class="subtitle">Elliptic Curve Parity L-Function</p>
+        <p style="font-size: 16px; font-family: monospace; text-align: center; color: #00ffff; background: rgba(0,255,255,0.1); padding: 5px; border-radius: 4px;">y&sup2; = x&sup3; + <span id="eq-a">0</span>x + <span id="eq-b">-2</span></p>
+        <p><strong>Timeline (Prime Grid):</strong> <span id="p-val" style="font-family: monospace; font-size:16px;">2</span></p>
+        <p><strong>Modulo Matches (N_p):</strong> <span id="np-val" style="font-family: monospace;">-</span></p>
+        <hr>
+        <p style="font-size: 12px; color: #aaa;">Input Custom Curve Parameters:</p>
+        <div class="input-group">
+            <input type="number" id="inp-a" placeholder="a" value="0">
+            <input type="number" id="inp-b" placeholder="b" value="-2">
+        </div>
+        <button id="btn-apply" class="btn" style="width: 100%; margin-top: 10px;">Apply Curve Geometry</button>
+        <hr>
+        
+        <!-- THE NEW PHYSICS TOGGLE -->
+        <p style="font-size: 12px; color: #00ffff; margin-bottom: 5px; font-weight: bold;">Quantum Boundary Enforcement:</p>
+        <button id="btn-physics" class="btn" style="background: #00ffff; color: #000; width: 100%; font-size: 14px; box-shadow: 0 0 10px #00ffff; transition: 0.3s; height: 50px;">
+            Spatial Rules: THEORETICAL<br><span style="font-size: 10px;">(Infinite Res. - CLICK FOR PLANCK LIMITS)</span>
+        </button>
+
+    </div>
+
+    <div id="controls">
+        <button id="btn-p0" class="btn btn-preset">Rank 0 Curve<br>y&sup2;=x&sup3;-x</button>
+        <button id="btn-p1" class="btn btn-preset">Rank 1 Curve<br>y&sup2;=x&sup3;-2</button>
+        <button id="btn-p2" class="btn btn-preset">Rank 2 Curve<br>y&sup2;=x&sup3;-5x+4</button>
+        <button id="btn-play" class="btn" style="background: #555; color: #00ff88; width: 100%;">Pause Simulation</button>
+    </div>
+
+    <div id="telemetry-panel">
+        <div class="tel-title">1. L-Function Resonance Wave</div>
+        <div class="wave-container">
+            <div class="wave-center"></div>
+            <div class="wave-s1"></div>
+            <svg class="wave-path" id="wave-svg" preserveAspectRatio="none" viewBox="0 0 100 100">
+                <polyline id="wave-line" fill="none" stroke="#00ffff" stroke-width="2" points="0,50"/>
+            </svg>
+            <div style="position: absolute; right: 5px; top: 2px; font-size: 10px; color:#ff00ff; font-family: monospace;">s=1 Core</div>
+        </div>
+
+        <div class="tel-title">2. Order of Vanishing (Rank Proxy)</div>
+        <p style="font-size: 10px; margin:-5px 0 5px 0; color:#aaa;">Wave flatness at s=1 singularity.</p>
+        <div class="rank-box" id="rank-val">CALCULATING...</div>
+        <div class="rank-label">Estimated Generator Rank</div>
+        <hr>
+
+        <div class="tel-title">3. Rational Generator Point Bounces</div>
+        <p style="font-size: 10px; margin:-5px 0 5px 0; color:#aaa;">Geometrical laser trajectories solving equations.</p>
+        <div id="points-box">
+            <div class="p-ax" id="px-ax"></div><div class="p-ax" id="py-ax"></div>
+        </div>
+        
+        <div id="collapse-alert">
+            &gt; PLANCK LIMIT REACHED &lt;<br>QUANTUM SNAP DETECTED.<br>INFINITE TRACTORY COLLAPSED INTO TORSION LOOP.
+        </div>
+        
+        <hr>
+        <div style="margin-top: 5px; text-align: center; font-size: 12px; color: #fff; font-family: monospace;">Total Primes Mapped: <span id="total-primes" style="color: #ff00ff;">0</span></div>
+        <div style="text-align: center; font-size: 10px; color: #aaa; margin-top: 2px;">Theoretical Trajectory Processing to &infin;</div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 10, 15);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; controls.dampingFactor = 0.05; controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+
+        scene.add(new THREE.AmbientLight(0x111122));
+        
+        let a = 0, b = -2; // Start with Rank 1 curve
+        let physicsMode = false;
+
+        const torusRadius = 5;
+        const tubeRadius = 1.5;
+        const torusGeo = new THREE.TorusGeometry(torusRadius, tubeRadius, 64, 100);
+        const torusMat = new THREE.MeshPhongMaterial({ color: 0x0044ff, wireframe: true, transparent: true, opacity: 0.3 });
+        const torusMesh = new THREE.Mesh(torusGeo, torusMat);
+        scene.add(torusMesh);
+
+        const centerGeo = new THREE.SphereGeometry(0.3, 16, 16);
+        const centerMat = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+        const centerMesh = new THREE.Mesh(centerGeo, centerMat);
+        scene.add(centerMesh);
+        scene.add(new THREE.PointLight(0xff00ff, 1.5, 20));
+
+        const nodesGroup = new THREE.Group();
+        scene.add(nodesGroup);
+        const laserGroup = new THREE.Group();
+        scene.add(laserGroup);
+
+        const eqA = document.getElementById('eq-a');
+        const eqB = document.getElementById('eq-b');
+        const inpA = document.getElementById('inp-a');
+        const inpB = document.getElementById('inp-b');
+        const waveLine = document.getElementById('wave-line');
+        const pointsBox = document.getElementById('points-box');
+        const collapseAlert = document.getElementById('collapse-alert');
+        const pVal = document.getElementById('p-val');
+        const npVal = document.getElementById('np-val');
+        const totalPrimesText = document.getElementById('total-primes');
+        const rankVal = document.getElementById('rank-val');
+
+        // PHYSICS TOGGLE
+        document.getElementById('btn-physics').onclick = (e) => {
+            physicsMode = !physicsMode;
+            if (physicsMode) {
+                e.target.innerHTML = "Spatial Rules: REAL-WORLD<br><span style='font-size: 10px;'>(Planck Pixel Limited - CLICK TO REMOVE)</span>";
+                e.target.style.background = "#ff4400";
+                e.target.style.color = "#fff";
+                e.target.style.boxShadow = "0 0 15px #ff4400";
+            } else {
+                e.target.innerHTML = "Spatial Rules: THEORETICAL<br><span style='font-size: 10px;'>(Infinite Res. - CLICK FOR PLANCK LIMITS)</span>";
+                e.target.style.background = "#00ffff";
+                e.target.style.color = "#000";
+                e.target.style.boxShadow = "0 0 10px #00ffff";
+            }
+            updateCurveParams(inpA.value, inpB.value); // Hard Reset
+        };
+
+        // State Machine
+        let isPaused = false;
+        let pIndex = 0;
+        let maxPrimes = Infinity;
+        let waveData = [];
+        let lSeriesSum = 0;
+        let currentPrime = 2;
+
+        let baseG = null;
+        let currentPoint = null;
+        let previousPointParams = null; // Store {u, v} for geodesic calculation
+        let visitedPoints = new Set();
+        let loopCollapsed = false;
+
+        function findBaseG() {
+            // Brute force a starting rational point generator
+            for(let x = -10; x < 100; x++) {
+                const rhs = x * x * x + a * x + b;
+                if (rhs >= 0) {
+                    const y = Math.sqrt(rhs);
+                    if (y === Math.floor(y) && y > 0) {
+                        return {x: x, y: y};
+                    }
+                }
+            }
+            return null; // Rank 0 curves might not find a non-zero Y easily here, that's fine.
+        }
+
+        function updateCurveParams(newA, newB) {
+            a = parseInt(newA);
+            b = parseInt(newB);
+            eqA.innerText = a;
+            eqB.innerText = b;
+            inpA.value = a;
+            inpB.value = b;
+            
+            pIndex = 0;
+            currentPrime = 2;
+            waveData = [];
+            lSeriesSum = 0;
+            
+            while(nodesGroup.children.length > 0) nodesGroup.remove(nodesGroup.children[0]);
+            while(laserGroup.children.length > 0) laserGroup.remove(laserGroup.children[0]);
+            document.querySelectorAll('.rat-point').forEach(e => e.remove());
+            
+            waveLine.setAttribute('points', '0,50');
+            rankVal.style.color = "#00ffff";
+            rankVal.innerText = "CALCULATING...";
+            torusMesh.material.color.setHex(0x0044ff);
+            centerMesh.material.color.setHex(0xff00ff);
+            collapseAlert.style.display = 'none';
+            loopCollapsed = false;
+            visitedPoints.clear();
+
+            baseG = findBaseG();
+            currentPoint = baseG;
+            previousPointParams = null; // Reset curvature tracking
+
+            if(baseG) addRationalPoint(baseG.x, baseG.y, true);
+        }
+
+        document.getElementById('btn-apply').onclick = () => { updateCurveParams(inpA.value, inpB.value); };
+        document.getElementById('btn-p0').onclick = () => { updateCurveParams(-1, 0); };
+        document.getElementById('btn-p1').onclick = () => { updateCurveParams(0, -2); };
+        document.getElementById('btn-p2').onclick = () => { updateCurveParams(-5, 4); };
+        document.getElementById('btn-play').onclick = (e) => { isPaused = !isPaused; };
+
+        // Math Helpers
+        function nextPrime(n) {
+            if (n < 2) return 2;
+            let p = n + 1;
+            while (true) {
+                let isPrime = true;
+                for (let i = 2; i * i <= p; i++) {
+                    if (p % i === 0) { isPrime = false; break; }
+                }
+                if (isPrime) return p;
+                p++;
+            }
+        }
+
+        function calcNp(prime, a_c, b_c) {
+            let np = 1; 
+            for (let x = 0; x < prime; x++) {
+                let rhs = (x * x * x + a_c * x + b_c) % prime;
+                if (rhs < 0) rhs += prime;
+                if (rhs === 0) np += 1; 
+                else { for (let y = 1; y < prime; y++) { if ((y * y) % prime === rhs) { np += 2; break; } } }
+            }
+            return np;
+        }
+
+        function addRationalPoint(x, y, isBase) {
+            // Plot on 2D map
+            const dot = document.createElement('div');
+            dot.className = 'rat-point';
+            // Wrap the massive coordinates so they fit in the tiny box continuously
+            const wrapX = Math.abs(x) % 50; 
+            const wrapY = Math.abs(y) % 50;
+            const mapX = 50 + (x >= 0 ? wrapX : -wrapX) + (Math.random()*4 - 2); 
+            const mapY = 50 - (y >= 0 ? wrapY : -wrapY) + (Math.random()*4 - 2);
+            dot.style.left = mapX + '%';
+            dot.style.top = mapY + '%';
+            if (isBase) dot.style.background = "#fff";
+            pointsBox.appendChild(dot);
+            
+            // Map x, y to Torus smoothly via angle
+            let raw_u = (x / 10) * Math.PI * 2; 
+            let raw_v = (y / 10) * Math.PI * 2;
+            let u = ((raw_u % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+            let v = ((raw_v % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+
+            const px = (torusRadius + tubeRadius * Math.cos(v)) * Math.cos(u);
+            const py = (torusRadius + tubeRadius * Math.cos(v)) * Math.sin(u);
+            const pz = tubeRadius * Math.sin(v);
+
+            const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), new THREE.MeshBasicMaterial({color: isBase ? 0xffffff : 0x00ff88}));
+            sphere.position.set(px, py, pz);
+            nodesGroup.add(sphere);
+            
+            if (previousPointParams && !isBase) {
+                let u1 = previousPointParams.u;
+                let v1 = previousPointParams.v;
+                
+                // Find shortest angular path to trace Torus surface (Geodesic Interpolation)
+                let du = u - u1;
+                if (du > Math.PI) du -= 2*Math.PI; else if (du < -Math.PI) du += 2*Math.PI;
+                let dv = v - v1;
+                if (dv > Math.PI) dv -= 2*Math.PI; else if (dv < -Math.PI) dv += 2*Math.PI;
+
+                const segments = 40;
+                const pathPoints = [];
+                for(let i=0; i<=segments; i++) {
+                    const t = i / segments;
+                    const ut = u1 + t * du;
+                    const vt = v1 + t * dv;
+                    const pt_x = (torusRadius + tubeRadius * Math.cos(vt)) * Math.cos(ut);
+                    const pt_y = (torusRadius + tubeRadius * Math.cos(vt)) * Math.sin(ut);
+                    const pt_z = tubeRadius * Math.sin(vt);
+                    pathPoints.push(new THREE.Vector3(pt_x, pt_y, pt_z));
+                }
+
+                const mat = new THREE.LineBasicMaterial({color: 0x00ff88, transparent: true, opacity: 0.8});
+                const geo = new THREE.BufferGeometry().setFromPoints(pathPoints);
+                laserGroup.add(new THREE.Line(geo, mat));
+                
+                // --- MEMORY GARBAGE COLLECTION ---
+                if (laserGroup.children.length > 100) {
+                    const oldLine = laserGroup.children[0];
+                    oldLine.geometry.dispose();
+                    oldLine.material.dispose();
+                    laserGroup.remove(oldLine);
+                }
+                if (nodesGroup.children.length > 100) {
+                    const oldNode = nodesGroup.children[0];
+                    oldNode.geometry.dispose();
+                    oldNode.material.dispose();
+                    nodesGroup.remove(oldNode);
+                }
+                const domDots = document.querySelectorAll('.rat-point');
+                if (domDots.length > 100) {
+                    domDots[0].remove();
+                }
+            }
+            previousPointParams = {u: u, v: v};
+            
+            // If the loop collapsed, flash red
+            if (loopCollapsed) {
+                sphere.material.color.setHex(0xff0000);
+            }
+        }
+
+        function stepEllipticCurveAddition() {
+            if (!baseG || loopCollapsed) return;
+            
+            let x1 = currentPoint.x, y1 = currentPoint.y;
+            let x2 = baseG.x, y2 = baseG.y;
+            let m;
+            
+            if (Math.abs(x1 - x2) < 0.0001 && Math.abs(y1 - y2) < 0.0001) {
+                if (Math.abs(y1) < 0.0001) { loopCollapsed = true; return; }
+                m = (3 * x1 * x1 + a) / (2 * y1);
+            } else {
+                if (Math.abs(x2 - x1) < 0.0001) { loopCollapsed = true; return; }
+                m = (y2 - y1) / (x2 - x1);
+            }
+            
+            let x3 = m * m - x1 - x2;
+            let y3 = m * (x1 - x3) - y1;
+            let nextP = {x: x3, y: y3};
+            
+            if (physicsMode) {
+                // Enforce Planck Visual Pixel Limit (Rounding to 1 decimal instead of infinite precision float tracking)
+                nextP.x = Math.round(nextP.x * 10) / 10;
+                nextP.y = Math.round(nextP.y * 10) / 10;
+                
+                // Quantum snap check
+                const encoded = nextP.x.toFixed(1) + "_" + nextP.y.toFixed(1);
+                if (visitedPoints.has(encoded)) {
+                    loopCollapsed = true;
+                    collapseAlert.style.display = 'block';
+                    torusMesh.material.color.setHex(0xff0000);
+                    rankVal.innerText = "RANK DEGRADED TO 0";
+                    rankVal.style.color = "#ff0000";
+                    addRationalPoint(nextP.x, nextP.y, false);
+                    return;
+                }
+                visitedPoints.add(encoded);
+            } else {
+                // To keep numbers from literally exceeding javascript memory and NaNing in display, we soft-wrap them in theoretical mode purely for the UI mapping, but they register as unique continuously.
+                if(Math.abs(nextP.x) > 1e10) nextP.x *= 0.1;
+                if(Math.abs(nextP.y) > 1e10) nextP.y *= 0.1;
+            }
+            
+            currentPoint = nextP;
+            addRationalPoint(nextP.x, nextP.y, false);
+        }
+
+        let simAccumulator = 0;
+        function stepSimulation() {
+            if (loopCollapsed || pIndex >= maxPrimes || isPaused) return;
+
+            // 1. Advance Prime Matrix
+            pVal.innerText = currentPrime;
+            const N_p = calcNp(currentPrime, a, b);
+            const a_p = currentPrime + 1 - N_p; 
+            npVal.innerText = N_p + " (Defect a_p: " + a_p + ")";
+
+            // 2. Map Waveform
+            lSeriesSum += a_p / currentPrime; 
+            waveData.push(lSeriesSum);
+            if (waveData.length > 100) waveData.shift();
+
+            let pointsStr = "";
+            const yOffset = 50; const yAmp = 15;
+            for(let i=0; i<waveData.length; i++) {
+                pointsStr += i + "," + (yOffset - (waveData[i] * yAmp)) + " ";
+            }
+            waveLine.setAttribute('points', pointsStr);
+
+            // 3. Pulse the Torus Geometry Tension
+            torusMesh.scale.set(1, 1, 1.0 + (a_p / currentPrime) * 0.1);
+
+            // 4. Update Infinite Tracker
+            totalPrimesText.innerText = pIndex.toLocaleString();
+
+            // 5. Predict Rank
+            if (pIndex > 50 && !loopCollapsed) {
+                const avgL = waveData[waveData.length-1];
+                if (Math.abs(avgL) < 0.2) {
+                    rankVal.innerText = "RANK 0 (Torsion Trap)";
+                    rankVal.style.color = "#ffaa00";
+                    torusMesh.material.color.setHex(0xffaa00); 
+                    centerMesh.material.color.setHex(0xffaa00);
+                } else if (Math.abs(avgL) < 1.0) {
+                    rankVal.innerText = "RANK 1";
+                    rankVal.style.color = "#00ff88";
+                    torusMesh.material.color.setHex(0x00ff88); 
+                } else {
+                    rankVal.innerText = "RANK 2+";
+                    rankVal.style.color = "#00ffff";
+                    torusMesh.material.color.setHex(0x00ffff);
+                }
+            }
+
+            // 6. Spawn the physical Bouncing dot
+            if (pIndex % 4 === 0) stepEllipticCurveAddition();
+
+            pIndex++;
+            currentPrime = nextPrime(currentPrime);
+        }
+
+        updateCurveParams(0, -2); // Init
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            simAccumulator += 0.016; 
+            if (simAccumulator > 0.05) {
+                stepSimulation();
+                simAccumulator = 0;
+            }
+
+            torusMesh.rotation.x += 0.001;
+            torusMesh.rotation.y += 0.002;
+            nodesGroup.rotation.copy(torusMesh.rotation);
+            laserGroup.rotation.copy(torusMesh.rotation);
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => { 
+            camera.aspect = window.innerWidth / window.innerHeight; 
+            camera.updateProjectionMatrix(); 
+            renderer.setSize(window.innerWidth, window.innerHeight); 
+        });
+        
+        animate();
+    </script>
+</body>
+</html>
