@@ -3,7 +3,7 @@
 
 By **Jerry Martinez**
 
-![Torus Simulation UI](https://github.com/koopa210/BSD-Torus-Engine/blob/main/screenshot_placeholder.jpg)
+![Torus Simulation UI](https://github.com/koopa210/BSD-Torus-Engine/blob/main/screenshot.jpg)
 
 ## Abstract
 The Birch and Swinnerton-Dyer (BSD) Torus Engine is a self-stabilizing interactive topological model operating out of the browser. It natively maps the arithmetic behavior of infinite rational points on an elliptic curve to geometric geodesic trajectories intersecting an interactive 3D Torus model, bridging the gap between algebraic number theory and quantitative physical modeling.
