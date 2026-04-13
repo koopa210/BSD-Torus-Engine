@@ -409,9 +409,12 @@
                 }
                 visitedPoints.add(encoded);
             } else {
-                // To keep numbers from literally exceeding javascript memory and NaNing in display, we soft-wrap them in theoretical mode purely for the UI mapping, but they register as unique continuously.
-                if(Math.abs(nextP.x) > 1e10) nextP.x *= 0.1;
-                if(Math.abs(nextP.y) > 1e10) nextP.y *= 0.1;
+                // Elliptic equations scale quadratically (x, x^4, x^9, x^16). JavaScript 64-bit floats
+                // hard-crash at exactly 10^308 (Infinity/NaN), causing the WebGL buffer to vanish. 
+                // We compress magnitudes above 10^10 using natural logs to trap coordinates 
+                // safely within memory bounds, while strictly preserving infinite non-repeating precision.
+                if (Math.abs(nextP.x) > 1e10) nextP.x = Math.sign(nextP.x) * (1e10 + (Math.log(Math.abs(nextP.x)) * 1e8));
+                if (Math.abs(nextP.y) > 1e10) nextP.y = Math.sign(nextP.y) * (1e10 + (Math.log(Math.abs(nextP.y)) * 1e8));
             }
             
             currentPoint = nextP;
