@@ -265,7 +265,12 @@
         document.getElementById('btn-p0').onclick = () => { updateCurveParams(-1, 0); };
         document.getElementById('btn-p1').onclick = () => { updateCurveParams(0, -2); };
         document.getElementById('btn-p2').onclick = () => { updateCurveParams(-5, 4); };
-        document.getElementById('btn-play').onclick = (e) => { isPaused = !isPaused; };
+        document.getElementById('btn-play').onclick = (e) => { 
+            isPaused = !isPaused; 
+            e.target.innerText = isPaused ? "Resume Simulation" : "Pause Simulation";
+            e.target.style.background = isPaused ? "#ffaa00" : "#555";
+            e.target.style.color = isPaused ? "#000" : "#00ff88";
+        };
 
         // Math Helpers
         function nextPrime(n) {
