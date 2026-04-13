@@ -316,6 +316,13 @@
             const py = (torusRadius + tubeRadius * Math.cos(v)) * Math.sin(u);
             const pz = tubeRadius * Math.sin(v);
 
+            // Dim all previously active generator nodes to create a "comet head" tracking effect
+            nodesGroup.children.forEach(node => {
+                if (node.material.color.getHex() === 0x00ffff) {
+                    node.material.color.setHex(0x0033aa);
+                }
+            });
+
             const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), new THREE.MeshBasicMaterial({color: isBase ? 0xffffff : 0x00ffff}));
             sphere.position.set(px, py, pz);
             nodesGroup.add(sphere);
