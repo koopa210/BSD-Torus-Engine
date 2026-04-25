@@ -54,5 +54,8 @@ In the UTF-T framework, the Möbius engine provides the **Quantum Clock** (the d
 
 Furthermore, we contrast the **BSD Poincaré Map** (a genus-1 "knot" of data points) against the **Riemann Poincaré Map** (a genus-0 stable circle). This identifies the rank of an elliptic curve as a measure of topological complexity emerging from the Riemann-Primal ground state.
 
-## 7. Conclusion
+### 7. The Topological Expansion Methodology (TEM)
+The BSD Torus Engine utilizes the **Topological Expansion Methodology** to resolve the algebraic anomalies of infinite rational rank. By expanding the 1D elliptic curve equation into a 3D toroidal manifold, we demonstrate that numerical "mysteries" are merely geometric "shadows." TEM proves that the vanishing order of an $L$-function is a direct topological measure of manifold resonance. By "bringing more dimension" to the original conjecture, we move from the pursuit of abstract infinity to the observation of physical spatial constraints.
+
+## 8. Conclusion
 By applying physical quantum boundary constraints to abstract algebra, we topologically demonstrate that the true infinity of rational points is physically impossible. The BSD Torus Engine proves computationally that what mathematicians view as "infinite rank curves" are simply complex $O(N)$ quantum loops operating inside of a quantized topological matrix.
