@@ -2,20 +2,35 @@
 
 *By Jerry Martinez*
 
-I just built a 3D WebGL Torus computation engine to physically map out the Birch and Swinnerton-Dyer Millennium Prize problem. And in doing so, I mathematically collided theoretical number theory with quantum physics to prove why absolute infinity cannot physically exist in reality.
+I just built a 3D WebGL Torus computation engine to physically map out the Birch and Swinnerton-Dyer Millennium Prize problem. My engine doesn't just read data—it **dynamically constructs** infinite rational trajectories, serving as a functional proof of how elliptic curves interact with the physical structure of space.
 
-The Birch and Swinnerton-Dyer (BSD) Conjecture asks us to calculate the algebraic rank of an elliptic curve (how many infinite unique, non-repeating coordinate points the equation $y^2 = x^3 + ax +b$ generates). The math says if the associated $L$-Function wave flatlines, the curve generates an infinite trajectory. 
+The Birch and Swinnerton-Dyer (BSD) Conjecture asks us to calculate the algebraic rank of an elliptic curve. The math says if the associated $L$-Function wave flatlines at $s=1$, the curve generates an infinite trajectory (Rank > 0). 
 
-I built an interactive computational physics machine that literally wraps this math around a 3D torus, firing laser geodesics that bounce from coordinate intercept to coordinate intercept. If you run the engine in "Theoretical" mode, the model functions like standard academic math: it calculates infinite floating-point continuity, the laser traces loop endlessly across the torus without ever colliding with the same exact sub-decimal coordinate, and the rank evaluates to infinity.
+Here is exactly how the mathematics of my engine bridges the gap to Complex Analysis.
 
-But here is where the absolute contradiction happens. Mathematics only works to infinite precision if the universe is perfectly continuous. We know from quantum mechanics that it is not. The universe operates on a fixed spatial quantization limit called the **Planck Length**. 
+### 1. The Building Materials (Input Energy)
+My engine is driven by the interaction of two "Building Materials":
+1. The defects $a_p$ (point counts over prime fields) which drive the harmonic $L$-Series wave.
+2. The algebraic rules of rational point addition ($P+Q$).
 
-I added a simple physics toggle to my engine. The moment you activate the Planck Quantization constraint, the engine applies the physical laws of our reality to the mathematical limits. Because the trajectory bounces can no longer calculate to infinite decimals, they are forced to functionally snap to the nearest physical lattice structure of space. 
+I am demonstrating that the sequence of rational points is the **geometric shadow** cast by the $L$-Series resonance when projected through the lens of a 3D Torus manifold.
 
-Instantly, the entire trajectory collapses. The moment a quantum snap forces a mathematical boundary to rest on a duplicate geometrical pixel, the engine reads a repetition, the slope equations perfectly mirror, and the curve degenerates into a repetitive, enclosed Torsion Loop.
+### 2. The Topological Mapping (The Invariant Singularity)
+To provide rigour for scientific review, my engine maps the abstract algebra to the physical manifold as follows:
+*   **The Coordinates:** The angles $u$ and $v$ on the Torus represent the complex parameter of the isomorphic curve $\mathbb{C}/\Lambda$.
+*   **The Singularity:** The evaluate point $s=1$ of the $L$-series.
+*   **Rank as a Topological State:**
+    *   **Rank 0:** A closed 1D cycle (a "Torsion Loop").
+    *   **Rank > 0:** An infinite dense geodesic wrap that never repeats.
 
-I built this BSD Torus Engine to computationally prove a massive synthesis between standard math and physics: **The Birch and Swinnerton-Dyer infinite trajectories only exist in abstract vacuums. When bound by the literal physical structure of spatial reality, infinite integer bounds immediately mathematically collapse down to Rank 0 topology traps.**
+### 3. The Planck Limit (The "Absolute Proof")
+Here is the mechanical proof: Infinite rank only exists in a theoretical vacuum. We know from quantum mechanics that space is quantized by the **Planck Length**. 
 
-You can literally stress-test the quantum topological bounds in your browser right here. 
+When you activate the Planck constraint in my engine, the trajectory bounces are forced to snap to the nearest physical lattice structure. Instantly, the infinite geodesic is forced into a duplicate coordinate. The moment a quantum snap causes a repetition, the entire trajectory collapses into a repetitive, enclosed Torsion Loop.
+
+I have moved the proof from "algebraic rank" to **Topological Invariance**. To achieve infinite rank in a physical universe is to physically shatter the topology of space itself.
+
+### Conclusion
+By physically building a self-stabilizing topological feedback loop, my engine proves that the infinite algebraic bounds of the BSD Conjecture are geometrically constrained. 
 
 **https://koopa210.github.io/BSD-Torus-Engine/**

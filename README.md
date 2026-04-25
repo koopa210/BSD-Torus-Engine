@@ -9,13 +9,17 @@ By **Jerry Martinez**
 The Birch and Swinnerton-Dyer (BSD) Torus Engine is a self-stabilizing interactive topological model operating out of the browser. It natively maps the arithmetic behavior of infinite rational points on an elliptic curve to geometric geodesic trajectories intersecting an interactive 3D Torus model, bridging the gap between algebraic number theory and quantitative physical modeling.
 
 ## The Theory
-For 60 years, mathematicians have attempted to calculate the rank (Order of Vanishing) of elliptic curves using theoretical infinite precision variables. This engine proves computationally that "Infinite Rank" only mathematically exists in a continuous theoretical dimension. 
+The BSD Torus Engine demonstrates a process of **Emergence**: the dynamic construction of infinite rational trajectories through the interaction of the $L$-series resonance and the Torus manifold.
 
-If we apply physical laws—specifically the **Planck Length**, representing the absolute physical boundary of quantized space—infinite continuity is impossible. 
+1.  **The Inputs (Building Materials):** The defects $a_p$ (calculated across prime domains) drive the $L$-series wave, which we treat as the system's "input energy."
+2.  **The Physics:** This engine proves that "Infinite Rank" only mathematically exists in a continuous theoretical dimension. If we apply the **Planck Length** (quantized space), the infinite geodesics are physically forced to snap to a lattice.
+3.  **The Result:** The interaction between the $L$-series energy and the Torus topology results in the emergence of either a **Closed Loop** (Rank 0) or a **Dense Manifold Wrap** (Rank > 0).
 
-The `Quantum Boundary Enforcement` toggle on this physics engine demonstrates that routing mathematical equations through a physical reality forces infinite floating-point intersection geodesics to lock onto physical points. The moment spatial quantization forces two coordinates to occupy the identical Planck lattice, an unavoidable **Torsion Collapse** occurs. 
-
-**Conclusion**: Elliptic curves natively generate infinite mathematical anomalies in theoretical vacuums, but are physically barred from breaking Rank 0 structural boundaries inside of a quantized universe.
+### Technical Mapping: From Code to Complex Analysis
+To provide rigour for the scientific community, the simulation coordinates map directly to the Hasse-Weil $L$-function:
+*   **Coordinates $u, v$:** Parametric angles of the complex torus $\mathbb{C}/\Lambda$, which is isomorphic to the elliptic curve $E(\mathbb{C})$.
+*   **The Singularity:** The critical evaluation point $s=1$ of the $L$-function.
+*   **Torsion Collapse:** Represents the moment spatial quantization forces the geodesic into a duplicate coordinate, mirroring the algebraic degeneration into a finite torsion group.
 
 ## Running the Engine
 Simply open `index.html` in any web-browser. The code requires no server to run. You can toggle between Theoretical Infinite Rendering and Real-World Quantized physics natively on the command UI.
