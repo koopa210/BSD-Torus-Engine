@@ -1,5 +1,5 @@
 # Birch and Swinnerton-Dyer Torus Engine
-**Solving the BSD Millennium Prize Problem via Quantized Spatial Topology**
+**Secondary Resonator of the Unified Topological Field Theory (UTF-T)**
 
 By **Jerry Martinez**
 
